@@ -1,1 +1,1 @@
-uvicorn main:app --reload
+gunicorn -k uvicorn.workers.UvicornWorker

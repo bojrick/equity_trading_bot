@@ -2,9 +2,13 @@ import config
 import websocket
 import json
 from database import SessionLocal, engine
-from models import Stock, dailyData
+from models import dailyData
 import datetime
+from sqlalchemy.orm import Session
+import models
+from pydantic import BaseModel 
 
+models.Base.metadata.create_all(bind=engine)
 
 def on_open(ws):
     print("opened")
@@ -15,32 +19,44 @@ def on_open(ws):
 
     ws.send(json.dumps(auth_data))
 
-    listen_message = {"action": "listen", "data": {"streams": ["Q.SPY"]}}
+    listen_message = {"action": "listen", "data": {"streams": ["AM.SPY","AM.TSLA"]}}
 
     ws.send(json.dumps(listen_message))
 
-db = SessionLocal()
-def on_message(ws, message):
-    print("received a message")
-    message = json.loads(message)
-    print('msg = ', message)
-    #row = stock = db.query(Stock).filter(Stock.id == id).first()
-    print('condn', 'p' in list(message['data'].keys()))
-    if 'p' not in list(message['data'].keys()):
-        print('iff')
+response_id = 0
+def on_message(ws, json_message):
+    print("____received a message______")
+    dict_message = json.loads(json_message)
+    print('msg = ', dict_message)
+    print('condn__', 'o' in dict_message['data'])
+    print('\n')
+    if 'o' in dict_message['data']:
+        db = SessionLocal()
         dd = dailyData()
-        print('dd = ',dd)
-        #ts = message["data"]["t"]
-        
-        #print('ts =',ts)
-        #ts = datetime.utcfromtimestamp(int(ts)/1e9).strftime('%Y-%m-%d %H:%M:%S')
-        #print('ts now=',ts)
-        dd.id = "2020-12-10 18:59:57"#f"{ts:%Y-%m-%d %H:%M:%S}"
-        dd.price = 8#message["data"]["p"]
-
+        response_id+=1
+        print('id',response_id)
+        dd.response_id = response_id
+        bt = datetime.datetime.fromtimestamp(int(dict_message["data"]["s"])/1e3)
+        et = datetime.datetime.fromtimestamp(int(dict_message["data"]["e"])/1e3)
+        dd.beg_time = f"{bt:%Y-%m-%d %H:%M:%S}"
+        dd.end_time = f"{et:%Y-%m-%d %H:%M:%S}"
+        dd.symbol = dict_message["data"]["T"]
+        dd.event = dict_message["data"]["ev"]
+        dd.vol = dict_message["data"]["v"]
+        dd.acc_vol = dict_message["data"]["av"]
+        dd.off_open_price = dict_message["data"]["op"]
+        dd.vwap = dict_message["data"]["vw"]
+        dd.o = dict_message["data"]["o"]
+        dd.high = dict_message["data"]["h"]
+        dd.low = dict_message["data"]["l"]
+        dd.close = dict_message["data"]["c"]
+        dd.avg = dict_message["data"]["a"]
         db.add(dd)
         db.commit()
 
 def on_close(ws):
     print("closed connection")
 
+socket = "wss://data.alpaca.markets/stream"
+ws = websocket.WebSocketApp(socket, on_open=on_open, on_message=on_message, on_close=on_close)
+ws.run_forever()

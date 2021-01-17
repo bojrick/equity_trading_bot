@@ -7,3 +7,6 @@ MARKET_SECRET_KEY = 'u3gIMKl5oVRB6UmMxBmxEq08WodSAxzmK1bVlkXo'
 MARKET_BASE_URL = 'https://api.alpaca.markets'
 
 ws_url = 'wss://data.alpaca.markets'
+
+binance_api_key = 'bpPz7zFFQJnZjxE1AQjPd6EpV4dHwWDATSKie5Tw26ize8kfyosM1FmhkaZZdKeL'
+binance_api_secret = 'XVGNBTcoLGVM7YKyGubf8hcV4SSc90OpGUxa7pWQv5Xv31ltQufQSQ61FejmWbde'

@@ -7,7 +7,7 @@ import psycopg2
 import psycopg2.extras
 
 def binanceBarExtractor(symbol,table_name,start_date,end_date):
-    print('working...')
+    # print('working...')
     # filename = '{}_MinuteBars.csv'.format(symbol)
 
     klines = bclient.get_historical_klines(symbol, Client.KLINE_INTERVAL_1MINUTE, start_date.strftime("%d %b %Y %H:%M:%S"), end_date.strftime("%d %b %Y %H:%M:%S"), 1000)
@@ -22,7 +22,6 @@ def binanceBarExtractor(symbol,table_name,start_date,end_date):
         df_columns = list(df)
         # create (col1,col2,...)
         columns = ",".join(df_columns)
-        
         # table = f"""CREATE TABLE {str(table_name)} (
         #     {df_columns[0]} bigint NOT NULL,
         #     {df_columns[1]} money NOT NULL,
@@ -41,7 +40,6 @@ def binanceBarExtractor(symbol,table_name,start_date,end_date):
         values = "VALUES({})".format(",".join(["%s" for _ in df_columns])) 
         #create INSERT INTO table (columns) VALUES('%s',...)
         insert_stmt = f"INSERT INTO {table_name}({columns}) {values}"
-
         cur = conn.cursor()
         psycopg2.extras.execute_batch(cur, insert_stmt,df.values)
         conn.commit()
@@ -60,10 +58,10 @@ if __name__ == '__main__':
     
     bclient = Client(api_key=config.binance_api_key, api_secret=config.binance_api_secret)
     
-    base = datetime.datetime.strptime('25 Dec 2020', '%d %b %Y')
-    date_list = [base - datetime.timedelta(days=x) for x in range(100)]
+    base = datetime.datetime.strptime('16 Jan 2021', '%d %b %Y')
+    date_list = [base - datetime.timedelta(days=x) for x in range(2500)]
     date_list.reverse()
     for idx in range(len(date_list)-1):
         print("start_date : {}, end_date: {}".format(date_list[idx],date_list[idx+1]))
-        binanceBarExtractor('BTCUSDT',table_name="btcusdtnew",start_date=date_list[idx],end_date=date_list[idx+1])
+        binanceBarExtractor('BTCUSDT',table_name="btcusdt3k",start_date=date_list[idx],end_date=date_list[idx+1])
     

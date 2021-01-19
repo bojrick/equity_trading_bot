@@ -5,7 +5,7 @@ import requests
 import config
 from tda import auth, client
 import json
-
+import pandas as pd
 
 # %%
 try:
@@ -18,14 +18,26 @@ except FileNotFoundError:
 
 r = c.get_price_history('AAPL',
         period_type=client.Client.PriceHistory.PeriodType.YEAR,
-        period=client.Client.PriceHistory.Period.TWENTY_YEARS,
+        period=client.Client.PriceHistory.Period.FIVE_DAYS,
         frequency_type=client.Client.PriceHistory.FrequencyType.DAILY,
         frequency=client.Client.PriceHistory.Frequency.DAILY)
-assert r.status_code == 200, r.raise_for_status()
-print(json.dumps(r.json(), indent=4))
+        
+#json.dumps(, indent=4))
+
+# %%
+oc = c.get_option_chain('BNGO',
+                        contract_type=client.Client.Options.ContractType.CALL,
+                        strike_count=10,
+                        include_quotes=True,
+                        strategy=client.Client.Options.Strategy.COVERED)
+
+
+assert oc.status_code == 200, oc.raise_for_status()
+print(oc.json().keys())#json.dumps(, indent=4))
+print(oc.json()['underlying'])
+
+temp_df = pd.DataFrame(oc.json()['monthlyStrategyList'][1]['optionStrategyList'])
+print(pd.DataFrame.from_records(temp_df['primaryLeg'].values))
 
 
 # %%
-
-
-
